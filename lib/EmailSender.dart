@@ -125,7 +125,6 @@ class _EmailSenderState extends State<EmailSender> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text('kukukonline'),
@@ -200,89 +199,73 @@ class _EmailSenderState extends State<EmailSender> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         labelText: 'Betreff',
+                        suffixIcon: Icon(
+                          Icons.subject,
+                          color: Colors.red,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               SizedBox(height: 20),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      margin: EdgeInsets.only(
-                        right: 10,
-                      ),
-                      height: 55,
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.all(Radius.circular(40)),
-                        border: Border.all(
-                          color: Colors.red,
-                          width: 2,
-                        ),
-                      ),
-                      padding: EdgeInsets.only(
-                        left: 10,
-                        top: 0,
-                      ),
-                      child: TextField(
-                        controller: _zipController,
-                        decoration: InputDecoration(
-                          suffixIcon: Icon(
-                            Icons.gps_fixed,
-                            color: Colors.red,
-                          ),
-                          border: InputBorder.none,
-                          labelText: 'Postleitzahl',
-                        ),
-                      ),
-                    ),
+              Container(
+                height: 55,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.all(Radius.circular(40)),
+                  border: Border.all(
+                    color: Colors.red,
+                    width: 2,
                   ),
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      height: 55,
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.all(Radius.circular(40)),
-                        border: Border.all(
-                          color: Colors.red,
-                          width: 2,
-                        ),
-                      ),
-                      padding: EdgeInsets.only(
-                        left: 10,
-                        right: 10,
-                        top: 20,
-                      ),
-                      child: DropdownButtonFormField<DisturbanceType>(
-                        decoration: InputDecoration.collapsed(hintText: ''),
-                        isExpanded: true,
-                        value: _selectedDisturbanceType,
-                        icon: Icon(
-                          Icons.do_disturb_rounded,
-                          color: Colors.red,
-                        ),
-                        items: _disturbanceTypeList,
-                        onChanged: (DisturbanceType newValue) {
-                          setState(() {
-                            _selectedDisturbanceType = newValue;
-                          });
-                        },
-                      ),
-                      /*TextField(
-                        controller: _zipController,
-                        decoration: InputDecoration(
-                          suffixIcon: Icon(Icons.do_disturb_rounded),
-                          border: InputBorder.none,
-                          labelText: 'Störungsart',
-                        ),
-                      ),*/
+                ),
+                padding: EdgeInsets.only(
+                  left: 10,
+                  top: 0,
+                ),
+                child: TextField(
+                  controller: _zipController,
+                  decoration: InputDecoration(
+                    suffixIcon: Icon(
+                      Icons.gps_fixed,
+                      color: Colors.red,
                     ),
+                    border: InputBorder.none,
+                    labelText: 'Postleitzahl',
                   ),
-                ],
+                ),
+              ),
+              SizedBox(height: 20),
+              Container(
+                height: 55,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.all(Radius.circular(40)),
+                  border: Border.all(
+                    color: Colors.red,
+                    width: 2,
+                  ),
+                ),
+                padding: EdgeInsets.only(
+                  left: 10,
+                  right: 10,
+                  top: 20,
+                ),
+                child: DropdownButtonFormField<DisturbanceType>(
+                  decoration: InputDecoration.collapsed(hintText: ''),
+                  isExpanded: true,
+                  value: _selectedDisturbanceType,
+                  icon: Icon(
+                    Icons.do_disturb_rounded,
+                    color: Colors.red,
+                  ),
+                  items: _disturbanceTypeList,
+                  onChanged: (DisturbanceType newValue) {
+                    setState(() {
+                      _selectedDisturbanceType = newValue;
+                    });
+                  },
+                ),
               ),
               SizedBox(height: 20),
             ],
