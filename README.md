@@ -9,3 +9,4 @@ In Germany the default way to do so, seems to be via email.
 - [x] select disturbance type
 - [x] separate zip input
 - [ ] logging zip, DateTime
+- [ ] add configuration for recipients

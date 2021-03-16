@@ -19,6 +19,11 @@ class Recipient {
     this.id,
     this.name,
   });
+
+  @override
+  String toString() {
+    return this.name;
+  }
 }
 
 class DisturbanceType {
@@ -49,9 +54,9 @@ class _EmailSenderState extends State<EmailSender> {
   List<Recipient> _selectedRecipients = [];
 
   static List<DisturbanceType> _disturbanceTypes = [
-    DisturbanceType(id: 1, name: 'Störung Mittagsruhe (13:00-15:00)'),
-    DisturbanceType(id: 2, name: 'Störung Nachtruhe (20:00-07:00)'),
-    DisturbanceType(id: 3, name: 'Störung Feiertagsruhe (ganztägig)'),
+    DisturbanceType(id: 1, name: 'Mittagsruhe (13:00-15:00)'),
+    DisturbanceType(id: 2, name: 'Nachtruhe (20:00-07:00)'),
+    DisturbanceType(id: 3, name: 'Feiertagsruhe (ganztägig)'),
   ];
 
   final _disturbanceTypeList = _disturbanceTypes
@@ -73,24 +78,19 @@ class _EmailSenderState extends State<EmailSender> {
     text: '91522',
   );
 
-  final _bodyController = TextEditingController(
-    text: 'Störung der:'+"\n"+
-        '[  ] Mittagsruhe (13:00-15:00)'+"\n"+
-        '[  ] Nachtruhe (20:00-07:00)'+"\n"+
-        '[  ] Feiertagsruhe (ganztägig)'+"\n\n"+
-        'PLZ: 91522'+"\n"+
-        'Datum lokal: ',
-  );
-
-  Future<void> send() async {
+  Future<void> _send() async {
     String platformResponse;
+    final utcNow = DateTime(now.year, now.month, now.day, now.hour, now.minute, now.second);
 
     final Uri _emailLaunchUri = Uri(
         scheme: 'mailto',
-        path: _selectedRecipients.toString(),
+        path: _selectedRecipients.join(','),
         queryParameters: {
           'subject': _subjectController.text,
-          'body': _bodyController.text,
+          'body': 'Störung der '+_selectedDisturbanceType.name+"\n\n"+
+            'PLZ: '+_zipController.text+"\n"+
+            'Datum lokal: '+now.toString()+"\n"+
+            'Datum UTC: '+utcNow.toUtc().toIso8601String(),
         }
     );
 
@@ -112,13 +112,9 @@ class _EmailSenderState extends State<EmailSender> {
 
   @override
   void initState() {
-    var utcNow = DateTime(now.year, now.month, now.day, now.hour, now.minute, now.second);
-
     _selectedRecipients = _recipients;
     _selectedDisturbanceType = _disturbanceTypes[1];
-    _subjectController.text += utcNow.toString();
-    _bodyController.text += utcNow.toString()+"\n";
-    _bodyController.text += 'Datum UTC: '+utcNow.toUtc().toIso8601String();
+    _subjectController.text += now.toString();
 
     super.initState();
   }
@@ -128,12 +124,11 @@ class _EmailSenderState extends State<EmailSender> {
     return Scaffold(
       appBar: AppBar(
         title: Text('kukukonline'),
-        actions: <Widget>[
-          IconButton(
-            onPressed: send,
-            icon: Icon(Icons.send),
-          )
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _send,
+        child: const Icon(Icons.send),
+        backgroundColor: Colors.red,
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -273,95 +268,5 @@ class _EmailSenderState extends State<EmailSender> {
         ),
       ),
     );
-    /*
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Kukukonline'),
-        actions: <Widget>[
-          IconButton(
-            onPressed: send,
-            icon: Icon(Icons.send),
-          )
-        ],
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: MultiSelectBottomSheetField(
-                searchable: true,
-                title: Text('Empfänger'),
-                buttonText: Text('Empfänger'),
-                listType: MultiSelectListType.CHIP,
-                chipDisplay: MultiSelectChipDisplay(
-                  onTap: (value) {
-                    setState(() {
-                      _selectedRecipients.remove(value);
-                    });
-                  },
-                ),
-                onSaved: (values) {
-                  setState(() {
-                    _selectedRecipients = values;
-                  });
-                },
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.all(Radius.circular(40)),
-                  border: Border.all(
-                    color: Colors.red,
-                    width: 2,
-                  ),
-                ),
-                buttonIcon: Icon(
-                  Icons.mail,
-                  color: Colors.red,
-                ),
-                items: _recipientList,
-                initialValue: _recipients,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _recipientController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Empfänger',
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _subjectController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Betreff',
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: _bodyController,
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.top,
-                  decoration: InputDecoration(
-                      labelText: 'Nachricht', border: OutlineInputBorder()),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-     */
   }
 }
