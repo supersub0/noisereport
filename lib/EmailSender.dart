@@ -138,25 +138,8 @@ class _EmailSenderState extends State<EmailSender> {
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              MultiSelectDialogField(
-                barrierColor: new Color.fromRGBO(255, 0, 0, 0.1),
-                searchable: true,
-                title: Text('Empfänger'),
-                buttonText: Text('Empfänger'),
-                listType: MultiSelectListType.CHIP,
-                chipDisplay: MultiSelectChipDisplay(
-                  icon: Icon(Icons.highlight_off),
-                  onTap: (value) {
-                    setState(() {
-                      _selectedRecipients.remove(value);
-                    });
-                  },
-                ),
-                onSaved: (values) {
-                  setState(() {
-                    _selectedRecipients = values;
-                  });
-                },
+              Container(
+                height: 55,
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.all(Radius.circular(40)),
@@ -165,12 +148,26 @@ class _EmailSenderState extends State<EmailSender> {
                     width: 2,
                   ),
                 ),
-                buttonIcon: Icon(
-                  Icons.mail,
-                  color: Colors.red,
+                padding: EdgeInsets.only(
+                  left: 10,
+                  right: 10,
+                  top: 20,
                 ),
-                items: _recipientList,
-                initialValue: _selectedRecipients,
+                child: DropdownButtonFormField<DisturbanceType>(
+                  decoration: InputDecoration.collapsed(hintText: ''),
+                  isExpanded: true,
+                  value: _selectedDisturbanceType,
+                  icon: Icon(
+                    Icons.do_disturb_rounded,
+                    color: Colors.red,
+                  ),
+                  items: _disturbanceTypeList,
+                  onChanged: (DisturbanceType newValue) {
+                    setState(() {
+                      _selectedDisturbanceType = newValue;
+                    });
+                  },
+                ),
               ),
               SizedBox(height: 20),
               Container(
@@ -231,8 +228,25 @@ class _EmailSenderState extends State<EmailSender> {
                 ),
               ),
               SizedBox(height: 20),
-              Container(
-                height: 55,
+              MultiSelectDialogField(
+                barrierColor: new Color.fromRGBO(255, 0, 0, 0.1),
+                searchable: true,
+                title: Text('Empfänger'),
+                buttonText: Text('Empfänger'),
+                listType: MultiSelectListType.CHIP,
+                chipDisplay: MultiSelectChipDisplay(
+                  icon: Icon(Icons.highlight_off),
+                  onTap: (value) {
+                    setState(() {
+                      _selectedRecipients.remove(value);
+                    });
+                  },
+                ),
+                onSaved: (values) {
+                  setState(() {
+                    _selectedRecipients = values;
+                  });
+                },
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.all(Radius.circular(40)),
@@ -241,28 +255,13 @@ class _EmailSenderState extends State<EmailSender> {
                     width: 2,
                   ),
                 ),
-                padding: EdgeInsets.only(
-                  left: 10,
-                  right: 10,
-                  top: 20,
+                buttonIcon: Icon(
+                  Icons.mail,
+                  color: Colors.red,
                 ),
-                child: DropdownButtonFormField<DisturbanceType>(
-                  decoration: InputDecoration.collapsed(hintText: ''),
-                  isExpanded: true,
-                  value: _selectedDisturbanceType,
-                  icon: Icon(
-                    Icons.do_disturb_rounded,
-                    color: Colors.red,
-                  ),
-                  items: _disturbanceTypeList,
-                  onChanged: (DisturbanceType newValue) {
-                    setState(() {
-                      _selectedDisturbanceType = newValue;
-                    });
-                  },
-                ),
+                items: _recipientList,
+                initialValue: _selectedRecipients,
               ),
-              SizedBox(height: 20),
             ],
           ),
         ),
