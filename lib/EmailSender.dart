@@ -1,14 +1,20 @@
 import 'dart:core';
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:firebase_analytics/observer.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class EmailSender extends StatefulWidget {
-  const EmailSender({Key key}): super(key: key);
+  const EmailSender({Key key, this.analytics, this.observer}): super(key: key);
+
+  final FirebaseAnalyticsObserver observer;
+  final FirebaseAnalytics analytics;
 
   @override
-  _EmailSenderState createState() => _EmailSenderState();
+  _EmailSenderState createState() => _EmailSenderState(analytics, observer);
 }
 
 class Recipient {
@@ -37,7 +43,11 @@ class DisturbanceType {
 }
 
 class _EmailSenderState extends State<EmailSender> {
+  _EmailSenderState(this.analytics, this.observer);
+
   final now = DateTime.now();
+  final FirebaseAnalyticsObserver observer;
+  final FirebaseAnalytics analytics;
 
   static List<Recipient> _recipients = [
     Recipient(id: 1, name: 'poststelle@bmvg.bund.de'),
@@ -51,7 +61,7 @@ class _EmailSenderState extends State<EmailSender> {
       .map((recipient) => MultiSelectItem<Recipient>(recipient, recipient.name))
       .toList();
 
-  List<Recipient> _selectedRecipients = [];
+  List<dynamic> _selectedRecipients = [];
 
   static List<DisturbanceType> _disturbanceTypes = [
     DisturbanceType(id: 1, name: 'Mittagsruhe (13:00-15:00)'),
@@ -95,13 +105,19 @@ class _EmailSenderState extends State<EmailSender> {
     );
 
     try {
+      await analytics.logEvent(
+          name: 'kukukonline-zip-dateTime',
+          parameters: <String, dynamic> {
+            'zip': _zipController.text,
+            'dateTime': utcNow.toIso8601String(),
+          },
+      );
+
       await launch(_emailLaunchUri.toString().replaceAll('+', '%20'));
-      platformResponse = 'success';
+      platformResponse = 'Erfolgreich!';
     } catch (error) {
       platformResponse = error.toString();
     }
-
-    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -113,8 +129,17 @@ class _EmailSenderState extends State<EmailSender> {
   @override
   void initState() {
     _selectedRecipients = _recipients;
-    _selectedDisturbanceType = _disturbanceTypes[1];
+    _selectedRecipients = _selectedRecipients.map((recipient) => recipient as dynamic)
+        .toList();
     _subjectController.text += now.toString();
+
+    if (now.hour >= 13 && now.hour <= 15) {
+      _selectedDisturbanceType = _disturbanceTypes[0];
+    } else if (now.hour >= 20 || now.hour <= 7) {
+      _selectedDisturbanceType = _disturbanceTypes[1];
+    } else {
+      _selectedDisturbanceType = _disturbanceTypes[2];
+    }
 
     super.initState();
   }
@@ -128,139 +153,137 @@ class _EmailSenderState extends State<EmailSender> {
       floatingActionButton: FloatingActionButton(
         onPressed: _send,
         child: const Icon(Icons.send),
-        backgroundColor: Colors.red,
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: SingleChildScrollView(
         child: Container(
           alignment: Alignment.center,
           padding: EdgeInsets.all(10),
           child: Column(
-            mainAxisSize: MainAxisSize.max,
+            // mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                height: 55,
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.all(Radius.circular(40)),
-                  border: Border.all(
-                    color: Colors.red,
-                    width: 2,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: (MediaQuery.of(context).size.width / 3 * 2) - 15,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).dialogBackgroundColor,
+                          border: Border.all(
+                            color: Theme.of(context).primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        padding: EdgeInsets.only(
+                          left: 10,
+                          right: 0,
+                          bottom: 0,
+                        ),
+                        child: DropdownButtonFormField<DisturbanceType>(
+                          iconSize: 0,
+                          decoration: InputDecoration(
+                            labelStyle: TextStyle(
+                              fontSize: 16,
+                            ),
+                            labelText: 'Störung',
+                            border: UnderlineInputBorder(
+                              borderSide: BorderSide.none,
+                            ),
+                            suffixIcon: Icon(
+                              Icons.do_disturb_rounded,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          isExpanded: true,
+                          value: _selectedDisturbanceType,
+                          items: _disturbanceTypeList,
+                          onChanged: (DisturbanceType newValue) {
+                            setState(() {
+                                _selectedDisturbanceType = newValue;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                padding: EdgeInsets.only(
-                  left: 10,
-                  right: 10,
-                  top: 20,
-                ),
-                child: DropdownButtonFormField<DisturbanceType>(
-                  decoration: InputDecoration.collapsed(hintText: ''),
-                  isExpanded: true,
-                  value: _selectedDisturbanceType,
-                  icon: Icon(
-                    Icons.do_disturb_rounded,
-                    color: Colors.red,
+                  SizedBox(width: 10),
+                  Column(
+                    children: [
+                      Container(
+                        height: 60,
+                        width: (MediaQuery.of(context).size.width / 3) - 15,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).dialogBackgroundColor,
+                          border: Border.all(
+                            color: Theme.of(context).primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        padding: EdgeInsets.only(
+                          top: 5,
+                          left: 10,
+                        ),
+                        child: TextField(
+                          controller: _zipController,
+                          decoration: InputDecoration(
+                            labelStyle: TextStyle(
+                              fontSize: 16,
+                            ),
+                            suffixIcon: Icon(
+                              Icons.gps_fixed,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            border: InputBorder.none,
+                            labelText: 'PLZ',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  items: _disturbanceTypeList,
-                  onChanged: (DisturbanceType newValue) {
-                    setState(() {
-                      _selectedDisturbanceType = newValue;
-                    });
-                  },
-                ),
+                ],
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               Container(
-                height: 55,
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.all(Radius.circular(40)),
+                  color: Theme.of(context).popupMenuTheme.color,
                   border: Border.all(
-                    color: Colors.red,
+                    color: Theme.of(context).primaryColor,
                     width: 2,
                   ),
-                ),
-                padding: EdgeInsets.only(
-                  left: 10,
-                  top: 0,
                 ),
                 child: Column(
                   children: <Widget>[
-                    TextField(
-                      controller: _subjectController,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        labelText: 'Betreff',
-                        suffixIcon: Icon(
-                          Icons.subject,
-                          color: Colors.red,
-                        ),
+                    MultiSelectDialogField(
+                      barrierColor: Theme.of(context).hintColor,
+                      listType: MultiSelectListType.CHIP,
+                      searchable: true,
+                      buttonText: Text('Empfänger'),
+                      title: Text('Empfänger'),
+                      items: _recipientList,
+                      buttonIcon: Icon(
+                        Icons.mail,
+                        color: Theme.of(context).primaryColor,
                       ),
+                      onConfirm: (values) {
+                        _selectedRecipients = values;
+                      },
+                      chipDisplay: MultiSelectChipDisplay(
+                        //icon: Icon(Icons.highlight_off),
+                        onTap: (value) {
+                          setState(() {
+                            _selectedRecipients.remove(value);
+                          });
+                        },
+                      ),
+                      initialValue: _selectedRecipients
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 20),
-              Container(
-                height: 55,
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.all(Radius.circular(40)),
-                  border: Border.all(
-                    color: Colors.red,
-                    width: 2,
-                  ),
-                ),
-                padding: EdgeInsets.only(
-                  left: 10,
-                  top: 0,
-                ),
-                child: TextField(
-                  controller: _zipController,
-                  decoration: InputDecoration(
-                    suffixIcon: Icon(
-                      Icons.gps_fixed,
-                      color: Colors.red,
-                    ),
-                    border: InputBorder.none,
-                    labelText: 'Postleitzahl',
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              MultiSelectDialogField(
-                barrierColor: new Color.fromRGBO(255, 0, 0, 0.1),
-                searchable: true,
-                title: Text('Empfänger'),
-                buttonText: Text('Empfänger'),
-                listType: MultiSelectListType.CHIP,
-                chipDisplay: MultiSelectChipDisplay(
-                  icon: Icon(Icons.highlight_off),
-                  onTap: (value) {
-                    setState(() {
-                      _selectedRecipients.remove(value);
-                    });
-                  },
-                ),
-                onSaved: (values) {
-                  setState(() {
-                    _selectedRecipients = values;
-                  });
-                },
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.all(Radius.circular(40)),
-                  border: Border.all(
-                    color: Colors.red,
-                    width: 2,
-                  ),
-                ),
-                buttonIcon: Icon(
-                  Icons.mail,
-                  color: Colors.red,
-                ),
-                items: _recipientList,
-                initialValue: _selectedRecipients,
               ),
             ],
           ),
