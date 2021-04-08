@@ -1,6 +1,8 @@
 import 'dart:core';
 import 'dart:async';
 import 'dart:ui';
+import 'Recipient.dart';
+import 'DisturbanceType.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
@@ -15,31 +17,6 @@ class EmailSender extends StatefulWidget {
 
   @override
   _EmailSenderState createState() => _EmailSenderState(analytics, observer);
-}
-
-class Recipient {
-  final int id;
-  final String name;
-
-  Recipient({
-    this.id,
-    this.name,
-  });
-
-  @override
-  String toString() {
-    return this.name;
-  }
-}
-
-class DisturbanceType {
-  final int id;
-  final String name;
-
-  DisturbanceType({
-    this.id,
-    this.name,
-  });
 }
 
 class _EmailSenderState extends State<EmailSender> {
@@ -92,29 +69,30 @@ class _EmailSenderState extends State<EmailSender> {
     String platformResponse;
     final utcNow = DateTime(now.year, now.month, now.day, now.hour, now.minute, now.second);
 
-    final Uri _emailLaunchUri = Uri(
-        scheme: 'mailto',
-        path: _selectedRecipients.join(','),
-        queryParameters: {
-          'subject': _subjectController.text,
-          'body': 'Störung der '+_selectedDisturbanceType.name+"\n\n"+
-            'PLZ: '+_zipController.text+"\n"+
-            'Datum lokal: '+now.toString()+"\n"+
-            'Datum UTC: '+utcNow.toUtc().toIso8601String(),
-        }
-    );
-
     try {
       await analytics.logEvent(
           name: 'kukukonline-zip-dateTime',
           parameters: <String, dynamic> {
             'zip': _zipController.text,
-            'dateTime': utcNow.toIso8601String(),
+            'dateTime': utcNow.toUtc().toIso8601String(),
           },
       );
 
-      await launch(_emailLaunchUri.toString().replaceAll('+', '%20'));
-      platformResponse = 'Erfolgreich!';
+      await launch(
+          Uri(
+              scheme: 'mailto',
+              path: _selectedRecipients.join(','),
+              queryParameters: {
+                'subject': _subjectController.text,
+                'body': 'Störung der '+_selectedDisturbanceType.name+"\n\n"+
+                    'PLZ: '+_zipController.text+"\n"+
+                    'Datum lokal: '+now.toString()+"\n"+
+                    'Datum UTC: '+utcNow.toUtc().toIso8601String(),
+              }
+          ).toString().replaceAll('+', '%20')
+      );
+
+      platformResponse = 'E-Mail erstellt';
     } catch (error) {
       platformResponse = error.toString();
     }
@@ -133,7 +111,9 @@ class _EmailSenderState extends State<EmailSender> {
         .toList();
     _subjectController.text += now.toString();
 
-    if (now.hour >= 13 && now.hour <= 15) {
+    if (now.weekday == DateTime.sunday) {
+      _selectedDisturbanceType = _disturbanceTypes[2];
+    } else if (now.hour >= 13 && now.hour <= 15) {
       _selectedDisturbanceType = _disturbanceTypes[0];
     } else if (now.hour >= 20 || now.hour <= 7) {
       _selectedDisturbanceType = _disturbanceTypes[1];
