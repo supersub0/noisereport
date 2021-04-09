@@ -1,30 +1,24 @@
-import 'dart:core';
-import 'dart:async';
-import 'dart:ui';
-import 'Recipient.dart';
-import 'DisturbanceType.dart';
+import '../shared/Recipient.dart';
+import '../shared/DisturbanceType.dart';
+import '../services/DatabaseService.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'package:firebase_analytics/observer.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 
 class EmailSender extends StatefulWidget {
-  const EmailSender({Key key, this.analytics, this.observer}): super(key: key);
+  const EmailSender({Key key, this.database}): super(key: key);
 
-  final FirebaseAnalyticsObserver observer;
-  final FirebaseAnalytics analytics;
+  final DatabaseService database;
 
   @override
-  _EmailSenderState createState() => _EmailSenderState(analytics, observer);
+  _EmailSenderState createState() => _EmailSenderState(database);
 }
 
 class _EmailSenderState extends State<EmailSender> {
-  _EmailSenderState(this.analytics, this.observer);
+  _EmailSenderState(this.database);
 
   final now = DateTime.now();
-  final FirebaseAnalyticsObserver observer;
-  final FirebaseAnalytics analytics;
+  final DatabaseService database;
 
   static List<Recipient> _recipients = [
     Recipient(id: 1, name: 'poststelle@bmvg.bund.de'),
@@ -70,12 +64,9 @@ class _EmailSenderState extends State<EmailSender> {
     final utcNow = DateTime(now.year, now.month, now.day, now.hour, now.minute, now.second);
 
     try {
-      await analytics.logEvent(
-          name: 'kukukonline-zip-dateTime',
-          parameters: <String, dynamic> {
-            'zip': _zipController.text,
-            'dateTime': utcNow.toUtc().toIso8601String(),
-          },
+      await database.logZipDateTime(
+        _zipController.text,
+        (utcNow.toUtc().millisecondsSinceEpoch ~/ 1000).toInt()
       );
 
       await launch(
