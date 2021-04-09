@@ -64,10 +64,7 @@ class _EmailSenderState extends State<EmailSender> {
     final utcNow = DateTime(now.year, now.month, now.day, now.hour, now.minute, now.second);
 
     try {
-      await database.logZipDateTime(
-        _zipController.text,
-        (utcNow.toUtc().millisecondsSinceEpoch ~/ 1000).toInt()
-      );
+      await database.logZipDateTime(_zipController.text, utcNow.toUtc());
 
       await launch(
           Uri(
