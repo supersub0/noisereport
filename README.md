@@ -8,8 +8,13 @@ In Germany the default way to do so, seems to be via email.
 ``` shell script
 flutter packages get
 flutter packages pub run flutter_launcher_icons:main
+cd ios; pod install
 flutter build
 ```
+
+## ios/Runner/GoogleService-Info.plist
+
+Download from https://console.firebase.google.com/project/{{your project_id}}/settings/general
 
 ## android/app/google-services.json
 
