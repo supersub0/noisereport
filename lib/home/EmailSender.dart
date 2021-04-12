@@ -36,7 +36,7 @@ class _EmailSenderState extends State<EmailSender> {
 
   static List<DisturbanceType> _disturbanceTypes = [
     DisturbanceType(id: 1, name: 'Mittagsruhe (13:00-15:00)'),
-    DisturbanceType(id: 2, name: 'Nachtruhe (20:00-07:00)'),
+    DisturbanceType(id: 2, name: 'Nachtruhe (22:00-07:00)'),
     DisturbanceType(id: 3, name: 'Feiertagsruhe (ganztägig)'),
   ];
 
@@ -103,7 +103,7 @@ class _EmailSenderState extends State<EmailSender> {
       _selectedDisturbanceType = _disturbanceTypes[2];
     } else if (now.hour >= 13 && now.hour <= 15) {
       _selectedDisturbanceType = _disturbanceTypes[0];
-    } else if (now.hour >= 20 || now.hour <= 7) {
+    } else if (now.hour >= 22 || now.hour <= 7) {
       _selectedDisturbanceType = _disturbanceTypes[1];
     } else {
       _selectedDisturbanceType = _disturbanceTypes[2];
