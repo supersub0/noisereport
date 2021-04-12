@@ -10,13 +10,13 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  static DatabaseService database = new DatabaseService();
+  static DatabaseService _database = new DatabaseService();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(primaryColor: Colors.lightGreen),
-      home: EmailSender(database: database),
+      home: EmailSender(_database),
     );
   }
 }

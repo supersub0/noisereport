@@ -6,19 +6,19 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 class EmailSender extends StatefulWidget {
-  const EmailSender({Key key, this.database}): super(key: key);
+  const EmailSender(this._database, {Key key}): super(key: key);
 
-  final DatabaseService database;
+  final DatabaseService _database;
 
   @override
-  _EmailSenderState createState() => _EmailSenderState(database);
+  _EmailSenderState createState() => _EmailSenderState(_database);
 }
 
 class _EmailSenderState extends State<EmailSender> {
-  _EmailSenderState(this.database);
+  _EmailSenderState(this._database);
 
-  final now = DateTime.now();
-  final DatabaseService database;
+  final _now = DateTime.now();
+  final DatabaseService _database;
 
   static List<Recipient> _recipients = [
     Recipient(id: 1, name: 'poststelle@bmvg.bund.de'),
@@ -61,10 +61,10 @@ class _EmailSenderState extends State<EmailSender> {
 
   Future<void> _send() async {
     String platformResponse;
-    final utcNow = DateTime(now.year, now.month, now.day, now.hour, now.minute, now.second);
+    final utcNow = DateTime(_now.year, _now.month, _now.day, _now.hour, _now.minute, _now.second);
 
     try {
-      await database.logZipDateTime(_zipController.text, utcNow.toUtc());
+      await _database.logZipDateTime(_zipController.text, utcNow.toUtc());
 
       await launch(
           Uri(
@@ -74,7 +74,7 @@ class _EmailSenderState extends State<EmailSender> {
                 'subject': _subjectController.text,
                 'body': 'Störung der '+_selectedDisturbanceType.name+"\n\n"+
                     'PLZ: '+_zipController.text+"\n"+
-                    'Datum lokal: '+now.toString()+"\n"+
+                    'Datum lokal: '+_now.toString()+"\n"+
                     'Datum UTC: '+utcNow.toUtc().toIso8601String(),
               }
           ).toString().replaceAll('+', '%20')
@@ -97,13 +97,13 @@ class _EmailSenderState extends State<EmailSender> {
     _selectedRecipients = _recipients;
     _selectedRecipients = _selectedRecipients.map((recipient) => recipient as dynamic)
         .toList();
-    _subjectController.text += now.toString();
+    _subjectController.text += _now.toString();
 
-    if (now.weekday == DateTime.sunday) {
+    if (_now.weekday == DateTime.sunday) {
       _selectedDisturbanceType = _disturbanceTypes[2];
-    } else if (now.hour >= 13 && now.hour <= 15) {
+    } else if (_now.hour >= 13 && _now.hour <= 15) {
       _selectedDisturbanceType = _disturbanceTypes[0];
-    } else if (now.hour >= 22 || now.hour <= 7) {
+    } else if (_now.hour >= 22 || _now.hour <= 7) {
       _selectedDisturbanceType = _disturbanceTypes[1];
     } else {
       _selectedDisturbanceType = _disturbanceTypes[2];
