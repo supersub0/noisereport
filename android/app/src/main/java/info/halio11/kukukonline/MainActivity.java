@@ -1,4 +1,4 @@
-package com.example.kukukonline;
+package info.halio11.kukukonline;
 
 import io.flutter.embedding.android.FlutterActivity;
 
