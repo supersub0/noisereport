@@ -12,6 +12,10 @@ cd ios; pod install
 flutter build
 ```
 
+## android signing
+
+https://flutter.dev/docs/deployment/android
+
 ## ios/Runner/GoogleService-Info.plist
 
 Download from https://console.firebase.google.com/project/{{your project_id}}/settings/general
